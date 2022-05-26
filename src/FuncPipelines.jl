@@ -1,5 +1,8 @@
 module FuncPipelines
 
-# Write your package code here.
+export Pipelines, Pipeline, PipeGet
+
+include("./utils.jl")
+include("./pipeline.jl")
 
 end
