@@ -58,7 +58,7 @@ A special pipeline that get the wanted `name`s from namedtuple.
 
 # Example
 
-```julia
+```julia-repl
 julia> p = Pipeline{:x}(identity, 1) |> Pipeline{(:sinx, :cosx)}(sincos, 1) |> PipeGet{(:x, :sinx)}()
 Pipelines:
   target[x] := identity(source)
@@ -107,7 +107,7 @@ Create a pipline function with name. `syms` can be either a `Symbol` or a tuple 
 
 # Example
 
-```julia
+```julia-repl
 julia> p = Pipeline{:x}(1) do x
            2x
        end
@@ -154,7 +154,7 @@ Chain of `Pipeline`s.
 
 # Example
 
-```julua
+```julia-repl
 julia> pipes = Pipelines(Pipeline{:x}((x,y)->x), Pipeline{(:sinx, :cosx)}((x,y)->sincos(x)))
 Pipelines:
   target[x] := var"#25#27"()(source, target)
