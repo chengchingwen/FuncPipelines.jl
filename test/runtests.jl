@@ -25,9 +25,16 @@ trunc_and_pad(b, c) = FuncPipelines.FixRest(trunc_and_pad, b, c)
         ps4 = ps2 |> PipeGet{(:x, :sinx)}()
         ps5 = p1 |> p2 |> Pipeline{:xsinx}(*, (:x, :sinx))
 
+        p4 = Pipeline{:r}(p3)
+        p5 = Pipeline(p3, :y)
+        p6 = Pipeline{:r}(p3, :y)
+
         @test ps5[begin:end] == ps5.pipes
 
         @test p3(0, (x = 2,)) == (x = 2, z = 11)
+        @test p4(0, (x = 2,)) == (x = 2, r = 11)
+        @test p5(0, (x = 2, y = 1)) == (x = 2, y = 1, z = 8)
+        @test p6(0, (x = 2, y = 1)) == (x = 2, y = 1, r = 8)
         @test ps1(0.5) == ps2(0.5)
         @test ps3(0.2) == 0.2
         @test ps4(0.3) == (x = 0.3, sinx = sin(0.3))

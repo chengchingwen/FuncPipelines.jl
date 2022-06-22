@@ -12,6 +12,17 @@ Pipeline{name}(f::ApplyN{N}) where {name, N} = (N == 1 || N == 2) ? Pipeline{nam
 Pipeline{name}(f, n::Int) where name = Pipeline{name}(ApplyN{n}(f))
 Pipeline{name}(f, syms::Union{Symbol, Tuple{Vararg{Symbol}}}) where name = Pipeline{name}(ApplySyms{syms}(f), 2)
 
+# replace name or syms
+Pipeline{name}(p::Pipeline) where name = Pipeline{name}(p.f)
+function Pipeline{name}(p::Pipeline, syms::Union{Symbol, Tuple{Vararg{Symbol}}}) where name
+    @assert p.f isa ApplyN{2} && p.f.f isa ApplySyms "Cannot change applied symbols on a pipeline not operating on target"
+    f = p.f.f
+    S = _syms(f)
+    @assert typeof(S) == typeof(syms) "Cannot change applied symbols to uncompatible one: form $S to $syms"
+    return Pipeline{name}(ApplySyms{syms}(f.f), 2)
+end
+Pipeline(p::Pipeline{name}, syms::Union{Symbol, Tuple{Vararg{Symbol}}}) where name = Pipeline{name}(p, syms)
+
 _name(p::Pipeline{name}) where name = name
 
 @inline _result_namedtuple(p::Pipeline, result) = _result_namedtuple(_name(p), result)
