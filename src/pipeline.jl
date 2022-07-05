@@ -36,7 +36,9 @@ struct Pipelines{T<:NTuple{N, Pipeline} where N}
     pipes::T
 end
 Pipelines{Tuple{}}(::Tuple{}) = error("empty pipelines")
-Pipelines(p1, ps...) = Pipelines((p1, ps...))
+Pipelines(p::Pipeline) = Pipelines{Tuple{typeof(p)}}((p,))
+Pipelines(ps::Pipelines) = ps
+Pipelines(p1, ps...) = p1 |> Pipelines(ps...)
 
 Base.length(ps::Pipelines) = length(ps.pipes)
 Base.iterate(ps::Pipelines, state=1) = iterate(ps.pipes, state)
@@ -45,22 +47,23 @@ Base.lastindex(ps::Pipelines) = lastindex(ps.pipes)
 
 @inline Base.getindex(ps::Pipelines, i) = ps.pipes[i]
 
-function (ps::Pipelines{T})(x) where T
+(ps::Pipelines{T})(x) where T = ps(x, NamedTuple()::NamedTuple{(), Tuple{}})
+function (ps::Pipelines{T})(x, y) where T
     if @generated
-        body = Expr[ :(y = ps[$n](x, y)) for n = 1:fieldcount(T)]
+        body = Expr[ :(y = _pipes[$n](x, y)) for n = 1:fieldcount(T)]
         return quote
-            y = NamedTuple()
+            _pipes = ps.pipes
             $(body...)
         end
     else
-        foldl((y, p)->p(x, y), ps.pipes; init=NamedTuple())
+        foldl((y, p)->p(x, y), ps.pipes; init=y)
     end
 end
 
-Base.:(|>)(p1::Pipeline, p2::Pipeline) = Pipelines(p1, p2)
-Base.:(|>)(p1::Pipelines, p2::Pipeline) = Pipelines(p1.pipes..., p2)
-Base.:(|>)(p1::Pipeline, p2::Pipelines) = Pipelines(p1, p2.pipes...)
-Base.:(|>)(p1::Pipelines, p2::Pipelines) = Pipelines(p1.pipes..., p2.pipes...)
+Base.:(|>)(p1::Pipeline, p2::Pipeline) = Pipelines((p1, p2))
+Base.:(|>)(p1::Pipelines, p2::Pipeline) = Pipelines((p1.pipes..., p2))
+Base.:(|>)(p1::Pipeline, p2::Pipelines) = Pipelines((p1, p2.pipes...))
+Base.:(|>)(p1::Pipelines, p2::Pipelines) = Pipelines((p1.pipes..., p2.pipes...))
 
 """
     PipeGet{name}()
@@ -226,17 +229,17 @@ function show_pipeline_function(io::IO, c::ComposedFunction, nested=false)
     end
 end
 show_pipeline_function(io::IO, f, _) = show_pipeline_function(io, f)
-show_pipeline_function(io::IO, f) = print(io, f)
+show_pipeline_function(io::IO, f) = show(io, f)
 
-function _show_pipeline_fixf(io::IO, g, name)
-    if g isa Base.Fix1
-        print(io, g.f, '(', g.x, ", ", name, ')')
-    elseif g isa Base.Fix2
-        print(io, g.f, '(', name, ", ", g.x, ')')
-    else
-        show_pipeline_function(io, g)
-        print(io, '(', name, ')')
-    end
+_show_pipeline_fixf(io::IO, g, name) = (show_pipeline_function(io, g); print(io, '(', name, ')'))
+_show_pipeline_fixf(io::IO, g::Base.Fix1, name) = print(io, g.f, '(', g.x, ", ", name, ')')
+_show_pipeline_fixf(io::IO, g::Base.Fix2, name) = print(io, g.f, '(', name, ", ", g.x, ')')
+function _show_pipeline_fixf(io::IO, g::Pipelines, name)
+    _prefix = get(io, :pipeline_display_prefix, nothing)
+    prefix = isnothing(_prefix) ? "  " : "$(_prefix)  ╰─ "
+    print(io, '(')
+    show_pipeline(io, g; flat = get(io, :compact, false), prefix)
+    print(io, '\n', _prefix, ')', '(', name, ')')
 end
 
 function show_pipeline_function(io::IO, p::Pipeline)
@@ -286,6 +289,7 @@ function show_pipeline(io::IO, ps::Pipelines; flat=false, prefix=nothing)
     n = length(ps.pipes)
     sprefix = isnothing(prefix) ? "  " : "$prefix"
     flat && print(io, '(')
+    io = IOContext(io, :pipeline_display_prefix => sprefix)
     for (i, p) in enumerate(ps.pipes)
         flat || print(io, sprefix)
 
