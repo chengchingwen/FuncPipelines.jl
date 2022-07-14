@@ -1,4 +1,5 @@
 using FuncPipelines
+using FuncPipelines: get_pipeline_func, target_name
 using Test
 
 # quick and dirty macro for making @inferred as test case
@@ -29,7 +30,10 @@ trunc_and_pad(b, c) = FuncPipelines.FixRest(trunc_and_pad, b, c)
         p5 = Pipeline(p3, :y)
         p6 = Pipeline{:r}(p3, :y)
 
-        @test ps5[begin:end] == ps5.pipes
+        @test ps5[begin:end] == ps5
+        @test get_pipeline_func(ps2[1]) === identity
+        @test Base.setindex(ps1, p2, 1)[1] === p2
+        @test replace(p->target_name(p) == :x ? Pipeline{:y}(p) : p, ps1)[1] === Pipeline{:y}(p1)
 
         @test p3(0, (x = 2,)) == (x = 2, z = 11)
         @test p4(0, (x = 2,)) == (x = 2, r = 11)
