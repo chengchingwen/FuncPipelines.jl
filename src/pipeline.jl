@@ -7,7 +7,7 @@ struct Pipeline{name, F}
     end
 end
 Pipeline{name}(f) where name = Pipeline{name, typeof(f)}(f)
-Pipeline{name}(f::ApplyN{N}) where {name, N} = (N == 1 || N == 2) ? Pipeline{name, typeof(f)}(f) : error("attempt to access $n-th argument while pipeline only take 2")
+Pipeline{name}(f::ApplyN{N}) where {name, N} = (0 <= N <= 2) ? Pipeline{name, typeof(f)}(f) : error("attempt to access $n-th argument while pipeline only take 2")
 
 Pipeline{name}(f, n::Int) where name = Pipeline{name}(ApplyN{n}(f))
 Pipeline{name}(f, syms::Union{Symbol, Tuple{Vararg{Symbol}}}) where name = Pipeline{name}(ApplySyms{syms}(f), 2)

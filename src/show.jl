@@ -14,7 +14,9 @@ end
 function show_pipeline_function(io::IO, a::ApplyN)
     print(io, "(args...->")
     show_pipeline_function(io, a.f)
-    print(io, "(args[", _nth(a), "]))")
+    _nth(a) == 0 ?
+        print(io, "()") :
+        print(io, "(args[", _nth(a), "]))")
 end
 function show_pipeline_function(io::IO, a::ApplySyms)
     print(io, "((; kwargs...)->")
@@ -54,7 +56,9 @@ function show_pipeline_function(io::IO, p::Pipeline)
     if p.f isa ApplyN
         n = _nth(p.f)
         g = p.f.f
-        if n == 1
+        if n == 0
+            _show_pipeline_fixf(io, g, "")
+        elseif n == 1
             _show_pipeline_fixf(io, g, :source)
         elseif n == 2
             if g isa ApplySyms

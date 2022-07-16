@@ -20,6 +20,7 @@ ApplyN{N}(f) where N = ApplyN{N, typeof(f)}(f)
 _nth(::ApplyN{N}) where N = N
 
 (f::ApplyN)(args...) = f.f(args[_nth(f)])
+(f::ApplyN{0})(args...) = f.f()
 
 struct ApplySyms{S, F} <: Function
     f::F
