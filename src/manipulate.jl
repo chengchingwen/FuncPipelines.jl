@@ -16,10 +16,36 @@ end
 """
     replace(f::Function, ps::Pipelines; [count::Integer])
 
-Return a new `Pipelines` where each `Pipeline` in `ps` is replaced by `f`.
+Return a new `Pipelines` where each `Pipeline` p in `ps` is replaced by `f(p)`.
  If count is specified, then replace at most count values in total (replacements being defined as new(x) !== x)
 """
 Base.replace(f::Function, ps::Pipelines; count::Integer = typemax(Int))
+
+
+"""
+    replace(f::Function, p::Pipeline)
+
+replace the function in `p` with the same target name and applied arguments.
+"""
+function Base.replace(f::Base.Callable, p::Pipeline)
+    name = target_name(p)
+    g = p.f
+    if g isa ApplyN
+        n = _nth(g)
+        if n == 1
+            h = ApplyN{1}(f)
+        else
+            if g.f isa ApplySyms
+                h = ApplyN{2}(ApplySyms{_syms(g.f)}(f))
+            else
+                h = ApplyN{2}(f)
+            end
+        end
+    else
+        h = f
+    end
+    return Pipeline{name}(h)
+end
 
 """
     Base.setindex(ps::Pipelines, p::Pipeline, i::Integer)

@@ -34,6 +34,7 @@ trunc_and_pad(b, c) = FuncPipelines.FixRest(trunc_and_pad, b, c)
         @test get_pipeline_func(ps2[1]) === identity
         @test Base.setindex(ps1, p2, 1)[1] === p2
         @test replace(p->target_name(p) == :x ? Pipeline{:y}(p) : p, ps1)[1] === Pipeline{:y}(p1)
+        @test replace(identity, p3)(0, (x = 2,)) == (x = 2, z = 2)
 
         @test p3(0, (x = 2,)) == (x = 2, z = 11)
         @test p4(0, (x = 2,)) == (x = 2, r = 11)
