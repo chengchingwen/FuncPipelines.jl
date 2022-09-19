@@ -105,6 +105,30 @@ const PipeGet{name} = Pipeline{name, typeof(__getindex__)}
 PipeGet{name}() where name = PipeGet{name}(__getindex__)
 (p::PipeGet{name})(_, y) where name = __getindex__(y, name)
 
+"""
+    PipeVar{name}(x)
+
+A special pipeline that set `x` as `name` to the namedtuple.
+
+# Example
+
+```julia-repl
+julia> p = Pipeline{:x}(identity, 1) |> PipeVar{:y}(5) |> Pipeline{:z}(+, (:x, :y))
+Pipelines:
+  target[x] := identity(source)
+  target[y] := 5
+  target[z] := +(target.x, target.y)
+
+julia> p(3)
+(x = 3, y = 5, z = 8)
+
+```
+
+"""
+const PipeVar{name} = Pipeline{name, <:ApplyN{0, <:Identity}}
+
+PipeVar{name}(x) where name = Pipeline{name}(Identity(x), 0)
+
 
 """
     Pipeline{name}(f)

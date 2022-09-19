@@ -1,6 +1,6 @@
 module FuncPipelines
 
-export Pipelines, Pipeline, PipeGet
+export Pipelines, Pipeline, PipeGet, PipeVar
 
 include("./utils.jl")
 include("./pipeline.jl")

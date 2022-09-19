@@ -86,6 +86,8 @@ function show_pipeline_function(io::IO, p::PipeGet)
     end
 end
 
+show_pipeline_function(io::IO, p::PipeVar) = show_pipeline_function(io, p.f.f.x)
+
 function Base.show(io::IO, p::Pipeline)
     print(io, "Pipeline{")
     name = target_name(p)

@@ -37,3 +37,9 @@ function (f::ApplySyms)(nt::NamedTuple)
         f.f(__getindex__(nt,s))
     end
 end
+
+struct Identity{T} <: Function
+    x::T
+end
+
+(f::Identity)() = f.x

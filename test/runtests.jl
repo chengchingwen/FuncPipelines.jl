@@ -66,6 +66,12 @@ trunc_and_pad(b, c) = FuncPipelines.FixRest(trunc_and_pad, b, c)
         @test_throws Exception pn2(1)
         @test_throws Exception pn2(3)
 
+        f() = 3
+        p0 = Pipeline{:x}(f, 0)
+        p0i = Pipeline{:x}(FuncPipelines.Identity((a = 3, b = 5)), 0)
+        @test p0(5) == (x = 3,)
+        @test p0i(5) == (x = (a = 3, b = 5),)
+
         @test p1 |> p2 == ps1
         @test ps1 |> p1 == Pipelines(p1, p2, p1)
         @test p1 |> ps1 == Pipelines(p1, p1, p2)
@@ -80,6 +86,7 @@ trunc_and_pad(b, c) = FuncPipelines.FixRest(trunc_and_pad, b, c)
             @test sprint(show, Pipeline{(:sinx, :cosx)}(sincos, 1)) == "Pipeline{(sinx, cosx)}(sincos(source))"
             @test sprint(show, Pipeline{(:sinx, :cosx)}(sincos, :x)) == "Pipeline{(sinx, cosx)}(sincos(target.x))"
             @test sprint(show, Pipeline{(:tanx, :tany)}(Base.Fix1(map, tan), 2)) == "Pipeline{(tanx, tany)}(map(tan, target))"
+            @test sprint(show, Pipeline{:x}(FuncPipelines.Identity((a = 3,b = 5)), 0)) == "Pipeline{x}((a = 3, b = 5))"
             @test sprint(show, Pipeline{:x2}(Base.Fix2(/, 2), :x)) == "Pipeline{x2}(/(target.x, 2))"
             @test sprint(show, Pipeline{:z}(sin∘cos, :x)) == "Pipeline{z}((sin ∘ cos)(target.x))"
             @test sprint(show, Pipeline{:z}(Base.Fix1(*, 2) ∘ Base.Fix2(+, 1))) == "Pipeline{z}(((x->*(2, x)) ∘ (x->+(x, 1)))(source, target))"
@@ -95,6 +102,8 @@ trunc_and_pad(b, c) = FuncPipelines.FixRest(trunc_and_pad, b, c)
                 ; context=:compact=>true
             ) ==
                 "Pipelines(target[x] := identity(source); target[(sinx, cosx)] := sincos(target.x); target[xsinx] := foo(source, target); target := (target.cosx, target.xsinx))"
+            @test sprint(show, Pipelines(Pipeline{:x}(identity, 1), PipeVar{:y}(3)); context=:compact=>true) ==
+                "Pipelines(target[x] := identity(source); target[y] := 3)"
         end
     end
 end
