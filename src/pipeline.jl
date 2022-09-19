@@ -31,7 +31,7 @@ Get the target symbol(s).
 target_name(p::Pipeline{name}) where name = name
 
 @inline _result_namedtuple(p::Pipeline, result) = _result_namedtuple(target_name(p), result)
-@inline _result_namedtuple(name::Symbol, result) = _result_namedtuple((name,), result)
+@inline _result_namedtuple(name::Symbol, result) = NamedTuple{(name,)}(tuple(result))
 @inline _result_namedtuple(name::NTuple{N, Symbol} where N, result) = NamedTuple{name}((result,))
 @inline _result_namedtuple(name::NTuple{N, Symbol} where N, result::Tuple) = NamedTuple{name}(result)
 
