@@ -42,8 +42,8 @@ show_pipeline_function(io::IO, f, _) = show_pipeline_function(io, f)
 show_pipeline_function(io::IO, f) = show(io, f)
 
 _show_pipeline_fixf(io::IO, g, name) = (show_pipeline_function(io, g); print(io, '(', name, ')'))
-_show_pipeline_fixf(io::IO, g::Base.Fix1, name) = print(io, g.f, '(', g.x, ", ", name, ')')
-_show_pipeline_fixf(io::IO, g::Base.Fix2, name) = print(io, g.f, '(', name, ", ", g.x, ')')
+_show_pipeline_fixf(io::IO, g::Base.Fix1, name) = (show_pipeline_function(io, g.f); print(io, '(', g.x, ", ", name, ')'))
+_show_pipeline_fixf(io::IO, g::Base.Fix2, name) = (show_pipeline_function(io, g.f); print(io, '(', name, ", ", g.x, ')'))
 function _show_pipeline_fixf(io::IO, g::Pipelines, name)
     _prefix = get(io, :pipeline_display_prefix, nothing)
     prefix = isnothing(_prefix) ? "  " : "$(_prefix)  ╰─ "
