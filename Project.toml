@@ -1,7 +1,7 @@
 name = "FuncPipelines"
 uuid = "9ed96fbb-10b6-44d4-99a6-7e2a3dc8861b"
 authors = ["chengchingwen <adgjl5645@hotmail.com> and contributors"]
-version = "0.2.2"
+version = "0.2.3"
 
 [compat]
 julia = "1.6"
